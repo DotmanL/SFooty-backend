@@ -6,16 +6,19 @@
   "author": "DotmanL <60046089+DotmanL@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node-dev index", 
-    "server": "nodemon index"
+    "start": "ts-node-dev src/index.ts",
+    "server": "nodemon src/index.ts"
   },
   "devDependencies": {
     "typescript": "^4.5.5"
   },
   "dependencies": {
     "@types/express": "^4.17.13",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^17.0.18",
     "bcrypt": "^5.0.1",
     "cookie-session": "^2.0.0",
+    "dotenv": "^16.0.0",
     "express": "^4.17.2",
     "express-async-errors": "^3.1.1",
     "jsonwebtoken": "^8.5.1",
