@@ -5,6 +5,9 @@
       // ... your other types
       "node"
     ],
+    "typeRoots": [
+      "./typings",
+    ],
     /* Projects */
     // "incremental": true,                              /* Enable incremental compilation */
     // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
