@@ -4,6 +4,8 @@ import cookiesession from 'cookie-session';
 import { errorHandler } from './middlewares/error-handler';
 import { NotFoundError } from './errors/not-found-error';
 import { signupRouter } from './routes/signup';
+import cors from 'cors'
+
 
 const app = express();
 app.set('trust proxy', true);
@@ -15,6 +17,13 @@ app.use(
     //we are setting the secure value of sending cookie via https to be true if not in a test environment
   })
 );
+const corsOptions ={
+  origin:'http://localhost:3000', 
+  credentials:true,            //access-control-allow-credentials:true
+  optionSuccessStatus:200
+}
+app.use(cors(corsOptions));
+
 
 app.use(signupRouter);
 
