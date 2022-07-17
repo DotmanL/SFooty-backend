@@ -7,10 +7,8 @@ export const connectDB = async () => {
   // }
 
   try {
-    // if(process.env.NODE_ENV){
       await mongoose.connect(`${process.env.mongoURI}`, {})
       console.log('connected to db')
-    // }
   } catch (err) {
     console.log(err, 'mongo fail')
   }

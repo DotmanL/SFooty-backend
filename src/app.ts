@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { json } from 'body-parser';
 import cookiesession from 'cookie-session';
 import { errorHandler } from './middlewares/error-handler';
-import { NotFoundError } from './errors/not-found-error';
+// import { NotFoundError } from './errors/not-found-error';
 import { signupRouter } from './routes/signup';
 import cors from 'cors'
 
@@ -33,9 +33,9 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello Big Man, lol')
 })
 
-app.all('*', async () => {
-  throw new NotFoundError();
-});
+// app.all('*', async () => {
+//   throw new NotFoundError();
+// });
 
 app.use(errorHandler);
 export { app };
