@@ -6,12 +6,6 @@ import { errorHandler } from './middlewares/error-handler';
 import { signupRouter } from './routes/signup';
 import cors from 'cors'
 
-// const corsOptions ={
-//   origin:'http://localhost:3000', 
-//   credentials: true,            //access-control-allow-credentials:true
-//   optionSuccessStatus:200
-// }
-
 const app = express();
 app.set('trust proxy', true);
 app.use(cors());
