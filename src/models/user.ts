@@ -31,7 +31,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   club: { type: String, required: true },
 },
+
   {
+    timestamps:true,
     //Format json properties of  response from the user signup
     toJSON: {
       transform(doc, ret) {
@@ -41,7 +43,7 @@ const userSchema = new mongoose.Schema({
         delete ret.__v;
       },
     },
-  }
+  },
 );
 
 //using an arrow function here the value of this will be overridden
