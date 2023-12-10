@@ -57,6 +57,18 @@ async function signUpAsync(req: Request, res: Response) {
   }
 }
 
+// Example: Find a user and populate the club and leagues
+// use to find
+// User.findOne({ username: 'exampleUser' })
+//   .populate({
+//     path: 'club',
+//     populate: { path: 'leagues' },
+//   })
+//   .exec((err, user) => {
+//     if (err) throw err;
+//     console.log(user);
+//   });
+
 //create endpoint to track onboarding progress of user
 
 //set up frontend first and ensure, I can send IdTokena and IdProvider for Google,
