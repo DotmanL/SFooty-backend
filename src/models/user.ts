@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
 import { PasswordManager } from "../services/password";
 
+export enum OnboardingStatus {
+  None,
+  RegisteredLeagues,
+  RegisteredClubs
+}
 export interface IUser {
   userName: string;
   email: string;
   password: string;
-  club: string;
+  onboardingStatus: OnboardingStatus;
 }
 
 interface UserModel extends mongoose.Model<UserDoc> {
@@ -16,15 +21,15 @@ interface UserDoc extends mongoose.Document {
   userName: string;
   email: string;
   password: string;
-  club: string;
+  onboardingStatus: number;
 }
 
 const userSchema = new mongoose.Schema(
   {
     userName: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: false },
-    club: { type: String, required: true }
+    password: { type: String, required: true },
+    onboardingStatus: { type: Number, required: true }
   },
 
   {

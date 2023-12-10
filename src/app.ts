@@ -18,6 +18,9 @@ app.use(
 );
 
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/league", require("./routes/league"));
+app.use("/api/club", require("./routes/club"));
+app.use("/api/interest", require("./routes/interest"));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello Big Man, lol");

@@ -1,12 +1,13 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
-import { User } from "../models/user";
+import { OnboardingStatus, User } from "../models/user";
 import { IFireBaseResponse } from "interfaces/IFirebaseResponse";
+import { calculateExpirationTime } from "../utility/dateTime";
 
-async function signUp(req: Request, res: Response) {
+async function signUpAsync(req: Request, res: Response) {
   try {
-    const { userName, email, password, club } = req.body;
+    const { userName, email, password } = req.body;
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -23,14 +24,27 @@ async function signUp(req: Request, res: Response) {
       }
     );
 
-    const user = User.build({ userName, email, password, club });
+    const user = User.build({
+      userName,
+      email,
+      password,
+      onboardingStatus: OnboardingStatus.None
+    });
     await user.save();
 
     req.session = {
       idToken: fireBaseResponse.data.idToken
     };
 
-    res.status(201).json({ idToken: fireBaseResponse.data.idToken });
+    const expirationTime = calculateExpirationTime(
+      parseInt(fireBaseResponse.data.expiresIn)
+    );
+
+    res.status(201).json({
+      accessToken: fireBaseResponse.data.idToken,
+      refreshToken: fireBaseResponse.data.refreshToken,
+      expirationDate: expirationTime
+    });
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({
       errors: [
@@ -43,8 +57,10 @@ async function signUp(req: Request, res: Response) {
   }
 }
 
+//create endpoint to track onboarding progress of user
+
 //set up frontend first and ensure, I can send IdTokena and IdProvider for Google,
 // for Apple, send rawNonce also
 async function signUpWithIdp(req: Request, res: Response) {}
 
-export { signUp };
+export { signUpAsync };
