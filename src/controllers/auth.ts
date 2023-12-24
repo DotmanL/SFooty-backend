@@ -1,14 +1,14 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
-import { OnboardingStatus, User } from "../models/user";
+import { OnboardingStatus, UserSchema } from "../models/user";
 import { IFireBaseResponse } from "interfaces/IFirebaseResponse";
 import { calculateExpirationTime } from "../utility/dateTime";
 
 async function signUpAsync(req: Request, res: Response) {
   try {
     const { userName, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
+    const existingUser = await UserSchema.findOne({ email });
 
     if (existingUser) {
       throw new BadRequestError(`User already exists with email: ${email}`);
@@ -24,7 +24,7 @@ async function signUpAsync(req: Request, res: Response) {
       }
     );
 
-    const user = User.build({
+    const user = UserSchema.build({
       userName,
       email,
       password,
@@ -43,7 +43,8 @@ async function signUpAsync(req: Request, res: Response) {
     res.status(201).json({
       accessToken: fireBaseResponse.data.idToken,
       refreshToken: fireBaseResponse.data.refreshToken,
-      expirationDate: expirationTime
+      expirationDate: expirationTime,
+      user: user
     });
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({

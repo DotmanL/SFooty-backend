@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { InterestsSchema } from "../models/interests";
+import { IUser, OnboardingStatus, UserSchema } from "../models/user";
+import { BadRequestError } from "../errors/bad-request-error";
+import { updateOnboardingStatusAsync } from "./user";
 
 async function createOrUpdateAsync(req: Request, res: Response) {
   try {

@@ -13,11 +13,11 @@ export interface IUser {
   onboardingStatus: OnboardingStatus;
 }
 
-interface UserModel extends mongoose.Model<UserDoc> {
+export interface UserModel extends mongoose.Model<UserDoc> {
   build(attrs: IUser): UserDoc;
 }
 
-interface UserDoc extends mongoose.Document {
+export interface UserDoc extends mongoose.Document {
   userName: string;
   email: string;
   password: string;
@@ -55,8 +55,8 @@ userSchema.pre("save", async function (done) {
 });
 
 userSchema.statics.build = (user: IUser) => {
-  return new User(user);
+  return new UserSchema(user);
 };
 
-const User = mongoose.model<UserDoc, UserModel>("User", userSchema);
-export { User };
+const UserSchema = mongoose.model<UserDoc, UserModel>("User", userSchema);
+export { UserSchema };

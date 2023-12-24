@@ -2,14 +2,14 @@ import mongoose, { model } from "mongoose";
 
 export interface IInterest {
   userId: string;
-  leagueIds: string[];
-  clubIds: string[];
+  leagueIds?: string[];
+  clubIds?: string[];
 }
 
 interface InterestDoc extends mongoose.Document {
   userId: string;
-  leagueIds: string[];
-  clubIds: string[];
+  leagueIds?: string[];
+  clubIds?: string[];
 }
 
 interface InterestModel extends mongoose.Model<InterestDoc> {
