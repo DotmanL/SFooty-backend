@@ -58,6 +58,49 @@ async function signUpAsync(req: Request, res: Response) {
   }
 }
 
+async function loginAsync(req: Request, res: Response) {
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await UserSchema.findOne({ email });
+
+    if (!existingUser) {
+      throw new BadRequestError(`No user exists  email: ${email}`);
+    }
+
+    const firebaseSignInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.firebase_apiKey}`;
+
+    const fireBaseResponse: IFireBaseResponse = await axios.post(
+      firebaseSignInUrl,
+      {
+        email: email,
+        password: password,
+        returnSecureToken: true
+      }
+    );
+
+    const expirationTime = calculateExpirationTime(
+      parseInt(fireBaseResponse.data.expiresIn)
+    );
+
+    res.status(201).json({
+      accessToken: fireBaseResponse.data.idToken,
+      refreshToken: fireBaseResponse.data.refreshToken,
+      expirationDate: expirationTime,
+      user: existingUser
+    });
+  } catch (err: any) {
+    return res.status(err.statusCode || 500).json({
+      errors: [
+        {
+          msg: err.message || "Internal Server Error",
+          status: err.statusCode || 500
+        }
+      ]
+    });
+  }
+}
+
 // Example: Find a user and populate the club and leagues
 // use to find
 // User.findOne({ username: 'exampleUser' })
@@ -76,4 +119,4 @@ async function signUpAsync(req: Request, res: Response) {
 // for Apple, send rawNonce also
 async function signUpWithIdp(req: Request, res: Response) {}
 
-export { signUpAsync };
+export { signUpAsync, loginAsync };

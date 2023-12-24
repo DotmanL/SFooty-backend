@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { validateRequest } from "../middlewares/validate-request";
-import { signUpAsync } from "../controllers/auth";
+import { loginAsync, signUpAsync } from "../controllers/auth";
 
 const router = express.Router();
 
@@ -17,6 +17,16 @@ router.post(
   ],
   validateRequest,
   signUpAsync
+);
+
+router.post(
+  "/login",
+  [
+    body("email").isEmail().withMessage("Email must be valid"),
+    body("password").notEmpty().withMessage("Password cannot be empty")
+  ],
+  validateRequest,
+  loginAsync
 );
 
 router.post(

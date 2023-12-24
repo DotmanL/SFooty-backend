@@ -4,5 +4,6 @@ export interface IFireBaseResponse {
     email: string;
     refreshToken: string;
     expiresIn: string;
+    registered?: boolean;
   };
 }
