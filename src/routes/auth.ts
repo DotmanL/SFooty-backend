@@ -1,7 +1,13 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { validateRequest } from "../middlewares/validate-request";
-import { loginAsync, signUpAsync } from "../controllers/auth";
+import {
+  getEmailProvidersAsync,
+  loginAsync,
+  loginWithIdpAsync,
+  signUpAsync,
+  signUpWithIdpAsync
+} from "../controllers/auth";
 
 const router = express.Router();
 
@@ -36,11 +42,31 @@ router.post(
     body("email").isEmail().withMessage("Email must be valid"),
     body("password")
       .trim()
-      .isLength({ min: 4, max: 20 })
-      .withMessage("Password must be between 4 and 20 characters")
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters"),
+    body("idToken").not().isEmpty(),
+    body("providerId").not().isEmpty()
   ],
   validateRequest,
-  signUpAsync
+  signUpWithIdpAsync
+);
+
+router.post(
+  "/loginWithIdp",
+  [
+    body("email").isEmail().withMessage("Email must be valid"),
+    body("idToken").not().isEmpty(),
+    body("providerId").not().isEmpty()
+  ],
+  validateRequest,
+  loginWithIdpAsync
+);
+
+router.post(
+  "/getEmailProvider",
+  [body("email").isEmail().withMessage("Email must be valid")],
+  validateRequest,
+  getEmailProvidersAsync
 );
 
 module.exports = router;

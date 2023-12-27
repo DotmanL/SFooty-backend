@@ -58,6 +58,66 @@ async function signUpAsync(req: Request, res: Response) {
   }
 }
 
+//set up frontend first and ensure, I can send IdTokena and IdProvider for Google,
+// for Apple, send rawNonce also
+async function signUpWithIdpAsync(req: Request, res: Response) {
+  try {
+    const { userName, email, password, idToken, providerId } = req.body;
+    const existingUser = await UserSchema.findOne({ email });
+
+    if (existingUser) {
+      throw new BadRequestError(`User already exists with email: ${email}`);
+    }
+
+    const user = UserSchema.build({
+      userName,
+      email,
+      password,
+      onboardingStatus: OnboardingStatus.None
+    });
+
+    await user.save();
+
+    const firebaseSignUpWithIdpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${process.env.firebase_apiKey}`;
+
+    const data = {
+      postBody: `id_token=${idToken}&providerId=${providerId}`,
+      requestUri: "http://localhost",
+      returnIdpCredential: true,
+      returnSecureToken: true
+    };
+
+    const fireBaseResponse: IFireBaseResponse = await axios.post(
+      firebaseSignUpWithIdpUrl,
+      data
+    );
+
+    req.session = {
+      idToken: fireBaseResponse.data.idToken
+    };
+
+    const expirationTime = calculateExpirationTime(
+      parseInt(fireBaseResponse.data.expiresIn)
+    );
+
+    res.status(201).json({
+      accessToken: fireBaseResponse.data.idToken,
+      refreshToken: fireBaseResponse.data.refreshToken,
+      expirationDate: expirationTime,
+      user: user
+    });
+  } catch (err: any) {
+    return res.status(err.statusCode || 500).json({
+      errors: [
+        {
+          msg: err.message || "Internal Server Error",
+          status: err.statusCode || 500
+        }
+      ]
+    });
+  }
+}
+
 async function loginAsync(req: Request, res: Response) {
   try {
     const { email, password } = req.body;
@@ -65,7 +125,7 @@ async function loginAsync(req: Request, res: Response) {
     const existingUser = await UserSchema.findOne({ email });
 
     if (!existingUser) {
-      throw new BadRequestError(`No user exists  email: ${email}`);
+      throw new BadRequestError(`No user exists with email: ${email}`);
     }
 
     const firebaseSignInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.firebase_apiKey}`;
@@ -101,6 +161,91 @@ async function loginAsync(req: Request, res: Response) {
   }
 }
 
+async function loginWithIdpAsync(req: Request, res: Response) {
+  try {
+    const { email, idToken, providerId } = req.body;
+    const existingUser = await UserSchema.findOne({ email });
+
+    if (!existingUser) {
+      throw new BadRequestError(`No user exists with email: ${email}`);
+    }
+
+    const firebaseSignUpWithIdpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${process.env.firebase_apiKey}`;
+
+    const data = {
+      postBody: `id_token=${idToken}&providerId=${providerId}`,
+      requestUri: "http://localhost",
+      returnIdpCredential: true,
+      returnSecureToken: true
+    };
+
+    const fireBaseResponse: IFireBaseResponse = await axios.post(
+      firebaseSignUpWithIdpUrl,
+      data
+    );
+
+    req.session = {
+      idToken: fireBaseResponse.data.idToken
+    };
+
+    const expirationTime = calculateExpirationTime(
+      parseInt(fireBaseResponse.data.expiresIn)
+    );
+
+    res.status(201).json({
+      accessToken: fireBaseResponse.data.idToken,
+      refreshToken: fireBaseResponse.data.refreshToken,
+      expirationDate: expirationTime,
+      user: existingUser
+    });
+  } catch (err: any) {
+    return res.status(err.statusCode || 500).json({
+      errors: [
+        {
+          msg: err.message || "Internal Server Error",
+          status: err.statusCode || 500
+        }
+      ]
+    });
+  }
+}
+
+async function getEmailProvidersAsync(req: Request, res: Response) {
+  try {
+    const { email } = req.body;
+    const existingUser = await UserSchema.findOne({ email });
+
+    if (!existingUser) {
+      throw new BadRequestError(`No user exists with email: ${email}`);
+    }
+
+    const firebaseGetEmailProviderUrl = `https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${process.env.firebase_apiKey}`;
+
+    const data = {
+      identifier: `${email}`,
+      continueUri: "http://localhost"
+    };
+    const fireBaseResponse = await axios.post(
+      firebaseGetEmailProviderUrl,
+      data
+    );
+
+    res.status(201).json({
+      providers: fireBaseResponse.data.allProviders,
+      registered: fireBaseResponse.data.registered
+    });
+  } catch (err: any) {
+    return res.status(err.statusCode || 500).json({
+      errors: [
+        {
+          msg: err.message || "Internal Server Error",
+          status: err.statusCode || 500
+        }
+      ]
+    });
+  }
+}
+
 // Example: Find a user and populate the club and leagues
 // use to find
 // User.findOne({ username: 'exampleUser' })
@@ -113,10 +258,10 @@ async function loginAsync(req: Request, res: Response) {
 //     console.log(user);
 //   });
 
-//create endpoint to track onboarding progress of user
-
-//set up frontend first and ensure, I can send IdTokena and IdProvider for Google,
-// for Apple, send rawNonce also
-async function signUpWithIdp(req: Request, res: Response) {}
-
-export { signUpAsync, loginAsync };
+export {
+  signUpAsync,
+  loginAsync,
+  signUpWithIdpAsync,
+  loginWithIdpAsync,
+  getEmailProvidersAsync
+};
