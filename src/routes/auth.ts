@@ -14,8 +14,8 @@ const router = express.Router();
 router.post(
   "/signup",
   [
-    body("userName").not().isEmpty(),
-    body("email").isEmail().withMessage("Email must be valid"),
+    body("userName").notEmpty(),
+    body("email").isEmail().withMessage("Email must be valid").notEmpty(),
     body("password")
       .trim()
       .isLength({ min: 8 })
@@ -28,8 +28,11 @@ router.post(
 router.post(
   "/login",
   [
-    body("email").isEmail().withMessage("Email must be valid"),
-    body("password").notEmpty().withMessage("Password cannot be empty")
+    body("email").isEmail().withMessage("Email must be valid").notEmpty(),
+    body("password")
+      .notEmpty()
+      .withMessage("Password cannot be empty")
+      .notEmpty()
   ],
   validateRequest,
   loginAsync
@@ -40,12 +43,8 @@ router.post(
   [
     body("userName").not().isEmpty(),
     body("email").isEmail().withMessage("Email must be valid"),
-    body("password")
-      .trim()
-      .isLength({ min: 8 })
-      .withMessage("Password must be at least 8 characters"),
-    body("idToken").not().isEmpty(),
-    body("providerId").not().isEmpty()
+    body("idToken").notEmpty(),
+    body("providerId").notEmpty()
   ],
   validateRequest,
   signUpWithIdpAsync
@@ -55,8 +54,8 @@ router.post(
   "/loginWithIdp",
   [
     body("email").isEmail().withMessage("Email must be valid"),
-    body("idToken").not().isEmpty(),
-    body("providerId").not().isEmpty()
+    body("idToken").notEmpty(),
+    body("providerId").notEmpty()
   ],
   validateRequest,
   loginWithIdpAsync

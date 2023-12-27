@@ -62,7 +62,7 @@ async function signUpAsync(req: Request, res: Response) {
 // for Apple, send rawNonce also
 async function signUpWithIdpAsync(req: Request, res: Response) {
   try {
-    const { userName, email, password, idToken, providerId } = req.body;
+    const { userName, email, idToken, providerId } = req.body;
     const existingUser = await UserSchema.findOne({ email });
 
     if (existingUser) {
@@ -72,7 +72,6 @@ async function signUpWithIdpAsync(req: Request, res: Response) {
     const user = UserSchema.build({
       userName,
       email,
-      password,
       onboardingStatus: OnboardingStatus.None
     });
 

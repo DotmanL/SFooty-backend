@@ -9,7 +9,7 @@ export enum OnboardingStatus {
 export interface IUser {
   userName: string;
   email: string;
-  password: string;
+  password?: string;
   onboardingStatus: OnboardingStatus;
 }
 
@@ -20,7 +20,7 @@ export interface UserModel extends mongoose.Model<UserDoc> {
 export interface UserDoc extends mongoose.Document {
   userName: string;
   email: string;
-  password: string;
+  password?: string;
   onboardingStatus: number;
 }
 
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
   {
     userName: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false },
     onboardingStatus: { type: Number, required: true }
   },
 
