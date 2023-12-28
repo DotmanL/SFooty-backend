@@ -6,7 +6,8 @@ import {
   loginAsync,
   loginWithIdpAsync,
   signUpAsync,
-  signUpWithIdpAsync
+  signUpWithIdpAsync,
+  updatePasswordAsync
 } from "../controllers/auth";
 
 const router = express.Router();
@@ -31,6 +32,7 @@ router.post(
     body("email").isEmail().withMessage("Email must be valid").notEmpty(),
     body("password")
       .notEmpty()
+      .isLength({ min: 8 })
       .withMessage("Password cannot be empty")
       .notEmpty()
   ],
@@ -59,6 +61,20 @@ router.post(
   ],
   validateRequest,
   loginWithIdpAsync
+);
+
+router.post(
+  "/updatePassword",
+  [
+    body("email").isEmail().withMessage("Email must be valid"),
+    body("idToken").notEmpty(),
+    body("password")
+      .trim()
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters")
+  ],
+  validateRequest,
+  updatePasswordAsync
 );
 
 router.post(

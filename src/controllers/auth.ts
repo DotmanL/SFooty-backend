@@ -209,6 +209,47 @@ async function loginWithIdpAsync(req: Request, res: Response) {
   }
 }
 
+async function updatePasswordAsync(req: Request, res: Response) {
+  try {
+    const { email, idToken, password } = req.body;
+    const existingUser = await UserSchema.findOne({ email });
+
+    if (!existingUser) {
+      throw new BadRequestError(`No user exists with email: ${email}`);
+    }
+
+    const firebaseUrl = `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${process.env.firebase_apiKey}`;
+    const fireBaseResponse: IFireBaseResponse = await axios.post(firebaseUrl, {
+      idToken: idToken,
+      password: password,
+      returnSecureToken: true
+    });
+    req.session = {
+      idToken: fireBaseResponse.data.idToken
+    };
+
+    const expirationTime = calculateExpirationTime(
+      parseInt(fireBaseResponse.data.expiresIn)
+    );
+
+    res.status(201).json({
+      accessToken: fireBaseResponse.data.idToken,
+      refreshToken: fireBaseResponse.data.refreshToken,
+      expirationDate: expirationTime,
+      user: existingUser
+    });
+  } catch (err: any) {
+    return res.status(err.statusCode || 500).json({
+      errors: [
+        {
+          msg: err.message || "Internal Server Error",
+          status: err.statusCode || 500
+        }
+      ]
+    });
+  }
+}
+
 async function getEmailProvidersAsync(req: Request, res: Response) {
   try {
     const { email } = req.body;
@@ -262,5 +303,6 @@ export {
   loginAsync,
   signUpWithIdpAsync,
   loginWithIdpAsync,
-  getEmailProvidersAsync
+  getEmailProvidersAsync,
+  updatePasswordAsync
 };
