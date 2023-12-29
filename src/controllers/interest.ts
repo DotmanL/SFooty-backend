@@ -16,7 +16,7 @@ async function createOrUpdateAsync(req: Request, res: Response) {
         { new: true }
       );
 
-      return res.json(updatedInterest);
+      return res.status(201).json(updatedInterest);
     }
 
     const interestToBeCreated = InterestsSchema.build({

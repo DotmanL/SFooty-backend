@@ -3,7 +3,6 @@ import { body } from "express-validator";
 import { validateRequest } from "../middlewares/validate-request";
 import {
   changePasswordAsync,
-  getEmailProvidersAsync,
   loginAsync,
   loginWithIdpAsync,
   resetPasswordAsync,
@@ -89,13 +88,6 @@ router.post(
   ],
   validateRequest,
   changePasswordAsync
-);
-
-router.post(
-  "/getEmailProvider",
-  [body("email").isEmail().withMessage("Email must be valid")],
-  validateRequest,
-  getEmailProvidersAsync
 );
 
 module.exports = router;

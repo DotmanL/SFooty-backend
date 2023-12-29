@@ -5,5 +5,6 @@ export interface IFireBaseResponse {
     refreshToken: string;
     expiresIn: string;
     registered?: boolean;
+    localId?: string;
   };
 }

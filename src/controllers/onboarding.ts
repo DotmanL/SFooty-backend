@@ -76,7 +76,7 @@ async function updateUserOnboardingStatusAsync(req: Request, res: Response) {
       { new: true }
     );
 
-    res.json(updatedUser);
+    res.status(201).json(updatedUser);
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({
       errors: [

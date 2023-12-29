@@ -34,7 +34,7 @@ async function listAsync(req: Request, res: Response) {
     if (!clubs) {
       return res.status(404).json({ msg: "No clubs found" });
     }
-    return res.json(clubs);
+    return res.status(200).json(clubs);
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({
       errors: [
@@ -74,7 +74,7 @@ async function listByLeaguesAsync(req: Request, res: Response) {
         }
       }
     ]);
-    return res.json(clubs);
+    return res.status(200).json(clubs);
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({
       errors: [

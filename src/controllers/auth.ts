@@ -26,7 +26,7 @@ async function signUpAsync(req: Request, res: Response) {
     );
 
     const user = UserSchema.build({
-      userName,
+      userName: userName.trim(),
       email,
       password,
       onboardingStatus: OnboardingStatus.None
@@ -71,7 +71,7 @@ async function signUpWithIdpAsync(req: Request, res: Response) {
     }
 
     const user = UserSchema.build({
-      userName,
+      userName: userName.trim(),
       email,
       onboardingStatus: OnboardingStatus.None
     });
@@ -143,7 +143,7 @@ async function loginAsync(req: Request, res: Response) {
       parseInt(fireBaseResponse.data.expiresIn)
     );
 
-    res.status(201).json({
+    res.status(200).json({
       accessToken: fireBaseResponse.data.idToken,
       refreshToken: fireBaseResponse.data.refreshToken,
       expirationDate: expirationTime,
@@ -192,7 +192,7 @@ async function loginWithIdpAsync(req: Request, res: Response) {
       parseInt(fireBaseResponse.data.expiresIn)
     );
 
-    res.status(201).json({
+    res.status(200).json({
       accessToken: fireBaseResponse.data.idToken,
       refreshToken: fireBaseResponse.data.refreshToken,
       expirationDate: expirationTime,
@@ -299,42 +299,6 @@ async function changePasswordAsync(req: Request, res: Response) {
   }
 }
 
-async function getEmailProvidersAsync(req: Request, res: Response) {
-  try {
-    const { email } = req.body;
-    const existingUser = await UserSchema.findOne({ email });
-
-    if (!existingUser) {
-      throw new BadRequestError(`No user exists with email: ${email}`);
-    }
-
-    const firebaseGetEmailProviderUrl = `https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${process.env.firebase_apiKey}`;
-
-    const data = {
-      identifier: `${email}`,
-      continueUri: "http://localhost"
-    };
-    const fireBaseResponse = await axios.post(
-      firebaseGetEmailProviderUrl,
-      data
-    );
-
-    res.status(201).json({
-      providers: fireBaseResponse.data.allProviders,
-      registered: fireBaseResponse.data.registered
-    });
-  } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
-  }
-}
-
 // Example: Find a user and populate the club and leagues
 // use to find
 // User.findOne({ username: 'exampleUser' })
@@ -352,7 +316,6 @@ export {
   loginAsync,
   signUpWithIdpAsync,
   loginWithIdpAsync,
-  getEmailProvidersAsync,
   resetPasswordAsync,
   changePasswordAsync
 };

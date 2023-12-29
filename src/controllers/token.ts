@@ -63,8 +63,6 @@ async function createAsync(req: Request, res: Response) {
       });
     }
   } catch (err: any) {
-    console.log(err, "err");
-
     return res.status(err.statusCode || 500).json({
       errors: [
         {

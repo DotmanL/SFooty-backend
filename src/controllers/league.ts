@@ -33,7 +33,7 @@ async function listAsync(req: Request, res: Response) {
     if (!leagues) {
       return res.status(404).json({ msg: "No leagues found" });
     }
-    return res.json(leagues);
+    return res.status(200).json(leagues);
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({
       errors: [
