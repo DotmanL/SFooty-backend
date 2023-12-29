@@ -2,12 +2,13 @@ import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { validateRequest } from "../middlewares/validate-request";
 import {
+  changePasswordAsync,
   getEmailProvidersAsync,
   loginAsync,
   loginWithIdpAsync,
+  resetPasswordAsync,
   signUpAsync,
-  signUpWithIdpAsync,
-  updatePasswordAsync
+  signUpWithIdpAsync
 } from "../controllers/auth";
 
 const router = express.Router();
@@ -64,7 +65,20 @@ router.post(
 );
 
 router.post(
-  "/updatePassword",
+  "/resetPassword",
+  [
+    body("email").isEmail().withMessage("Email must be valid"),
+    body("password")
+      .trim()
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters")
+  ],
+  validateRequest,
+  resetPasswordAsync
+);
+
+router.post(
+  "/changePassword",
   [
     body("email").isEmail().withMessage("Email must be valid"),
     body("idToken").notEmpty(),
@@ -74,7 +88,7 @@ router.post(
       .withMessage("Password must be at least 8 characters")
   ],
   validateRequest,
-  updatePasswordAsync
+  changePasswordAsync
 );
 
 router.post(

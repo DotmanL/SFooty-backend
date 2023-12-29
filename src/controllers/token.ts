@@ -18,6 +18,12 @@ async function createAsync(req: Request, res: Response) {
       throw new BadRequestError(`No user exists with email: ${email}`);
     }
 
+    const existingToken = await TokenSchema.findOne({ email });
+
+    if (existingToken) {
+      await existingToken.delete();
+    }
+
     const token = TokenSchema.build({
       email,
       token: randomToken
@@ -26,7 +32,8 @@ async function createAsync(req: Request, res: Response) {
     await token.save();
 
     const dynamicTemplateData = {
-      token: token.token
+      token: token.token,
+      username: existingUser.userName
     };
 
     const templateId = "d-211ec0876afb4e45b24871613d6391c9";
@@ -41,7 +48,7 @@ async function createAsync(req: Request, res: Response) {
 
     try {
       await sgMail.send(msg);
-      res.json({
+      res.status(201).json({
         status: "success"
       });
     } catch (err: any) {
@@ -56,6 +63,8 @@ async function createAsync(req: Request, res: Response) {
       });
     }
   } catch (err: any) {
+    console.log(err, "err");
+
     return res.status(err.statusCode || 500).json({
       errors: [
         {
@@ -74,11 +83,13 @@ async function verifyAsync(req: Request, res: Response) {
 
     if (!existingToken) {
       throw new BadRequestError(
-        `Token doesn't exist of have expired for this: ${email}`
+        `Invalid token or token must have expired for: ${email}`
       );
     }
 
-    res.status(201).json({ token: existingToken });
+    res.status(201).json({
+      status: "success"
+    });
   } catch (err: any) {
     return res.status(err.statusCode || 500).json({
       errors: [
