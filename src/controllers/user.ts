@@ -39,10 +39,10 @@ async function deleteAccountAsync(req: Request, res: Response) {
     });
 
     if (userInterest) {
-      await userInterest.delete();
+      await userInterest.deleteOne();
     }
 
-    await existingUser.delete();
+    await existingUser.deleteOne();
 
     try {
       const firebaseUsers = await admin

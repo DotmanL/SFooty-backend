@@ -22,7 +22,7 @@ async function createAsync(req: Request, res: Response) {
     const existingToken = await TokenSchema.findOne({ email });
 
     if (existingToken) {
-      await existingToken.delete();
+      await existingToken.deleteOne();
     }
 
     const token = TokenSchema.build({
