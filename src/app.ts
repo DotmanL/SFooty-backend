@@ -19,6 +19,7 @@ app.use(
 );
 
 app.use(currentUser);
+
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/onboarding", require("./routes/onboarding"));
 app.use("/api/interest", require("./routes/interest"));
@@ -34,6 +35,7 @@ app.get("/", (req: Request, res: Response) => {
 // app.all('*', async () => {
 //   throw new NotFoundError();
 // });
-
+//NOTE: error handler must be last always
 app.use(errorHandler);
+
 export { app };

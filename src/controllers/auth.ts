@@ -4,16 +4,13 @@ import { BadRequestError } from "../errors/bad-request-error";
 import { OnboardingStatus, UserSchema } from "../models/user";
 import { IFireBaseResponse } from "interfaces/IFirebaseResponse";
 import { calculateExpirationTime } from "../utility/dateTime";
+import { handleErrorResponse } from "../middlewares/error-handler";
 const admin = require("firebase-admin");
 
 async function signUpAsync(req: Request, res: Response) {
   try {
     const { userName, email, password } = req.body;
-    const existingUser = await UserSchema.findOne({ email });
 
-    if (existingUser) {
-      throw new BadRequestError(`User already exists with email: ${email}`);
-    }
     const firebaseSignUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.firebase_apiKey}`;
     const fireBaseResponse: IFireBaseResponse = await axios.post(
       firebaseSignUpUrl,
@@ -45,27 +42,14 @@ async function signUpAsync(req: Request, res: Response) {
       user: user
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
-//set up frontend first and ensure, I can send IdTokena and IdProvider for Google,
 // for Apple, send rawNonce also
 async function signUpWithIdpAsync(req: Request, res: Response) {
   try {
     const { userName, email, idToken, providerId } = req.body;
-    const existingUser = await UserSchema.findOne({ email });
-
-    if (existingUser) {
-      throw new BadRequestError(`User already exists with email: ${email}`);
-    }
 
     const user = UserSchema.build({
       userName: userName.trim(),
@@ -102,14 +86,7 @@ async function signUpWithIdpAsync(req: Request, res: Response) {
       user: user
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -147,14 +124,7 @@ async function loginAsync(req: Request, res: Response) {
       user: existingUser
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -194,14 +164,7 @@ async function loginWithIdpAsync(req: Request, res: Response) {
       user: existingUser
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -244,14 +207,7 @@ async function resetPasswordAsync(req: Request, res: Response) {
       user: existingUser
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -284,14 +240,7 @@ async function changePasswordAsync(req: Request, res: Response) {
       user: existingUser
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 

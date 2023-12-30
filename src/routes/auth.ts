@@ -9,6 +9,7 @@ import {
   signUpAsync,
   signUpWithIdpAsync
 } from "../controllers/auth";
+import { checkDuplicateUser } from "../middlewares/duplicate-user";
 
 const router = express.Router();
 
@@ -23,7 +24,21 @@ router.post(
       .withMessage("Password must be at least 8 characters")
   ],
   validateRequest,
+  checkDuplicateUser,
   signUpAsync
+);
+
+router.post(
+  "/signupWithIdp",
+  [
+    body("userName").not().isEmpty(),
+    body("email").isEmail().withMessage("Email must be valid"),
+    body("idToken").notEmpty(),
+    body("providerId").notEmpty()
+  ],
+  validateRequest,
+  checkDuplicateUser,
+  signUpWithIdpAsync
 );
 
 router.post(
@@ -38,18 +53,6 @@ router.post(
   ],
   validateRequest,
   loginAsync
-);
-
-router.post(
-  "/signupWithIdp",
-  [
-    body("userName").not().isEmpty(),
-    body("email").isEmail().withMessage("Email must be valid"),
-    body("idToken").notEmpty(),
-    body("providerId").notEmpty()
-  ],
-  validateRequest,
-  signUpWithIdpAsync
 );
 
 router.post(

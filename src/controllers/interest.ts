@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
+import { handleErrorResponse } from "../middlewares/error-handler";
 import { InterestsSchema } from "../models/interests";
-import { IUser, OnboardingStatus, UserSchema } from "../models/user";
-import { BadRequestError } from "../errors/bad-request-error";
-import { updateOnboardingStatusAsync } from "./user";
 
 async function createOrUpdateAsync(req: Request, res: Response) {
   try {
@@ -28,14 +26,7 @@ async function createOrUpdateAsync(req: Request, res: Response) {
     await interestToBeCreated.save();
     res.status(201).json(interestToBeCreated);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 

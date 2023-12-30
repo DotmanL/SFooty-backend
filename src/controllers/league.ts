@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
 import { LeaguesSchema } from "../models/leagues";
+import { handleErrorResponse } from "../middlewares/error-handler";
 
 async function createAsync(req: Request, res: Response) {
   try {
@@ -15,14 +16,7 @@ async function createAsync(req: Request, res: Response) {
     await leagueToBeCreated.save();
     res.status(201).json(leagueToBeCreated);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -31,18 +25,11 @@ async function listAsync(req: Request, res: Response) {
     const leagues = await LeaguesSchema.find().sort({ createdAt: "asc" });
 
     if (!leagues) {
-      return res.status(404).json({ msg: "No leagues found" });
+      return res.status(404).json({ message: "No leagues found" });
     }
     return res.status(200).json(leagues);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 

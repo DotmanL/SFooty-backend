@@ -4,6 +4,7 @@ import { UserSchema } from "../models/user";
 import { BadRequestError } from "../errors/bad-request-error";
 import { TokenSchema } from "../models/token";
 import "dotenv/config";
+import { handleErrorResponse } from "../middlewares/error-handler";
 
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -38,7 +39,7 @@ async function createAsync(req: Request, res: Response) {
 
     const templateId = "d-211ec0876afb4e45b24871613d6391c9";
 
-    const msg = {
+    const message = {
       to: { email },
       from: "oladotunlawal7@gmail.com",
       subject: "Your Verification code",
@@ -47,7 +48,7 @@ async function createAsync(req: Request, res: Response) {
     };
 
     try {
-      await sgMail.send(msg);
+      await sgMail.send(message);
       res.status(201).json({
         status: "success"
       });
@@ -55,7 +56,7 @@ async function createAsync(req: Request, res: Response) {
       return res.status(err.statusCode || 500).json({
         errors: [
           {
-            msg:
+            message:
               err.message || "failure to send mail" || "Internal Server Error",
             status: err.statusCode || 500
           }
@@ -63,14 +64,7 @@ async function createAsync(req: Request, res: Response) {
       });
     }
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -89,14 +83,7 @@ async function verifyAsync(req: Request, res: Response) {
       status: "success"
     });
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 

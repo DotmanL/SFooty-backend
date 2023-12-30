@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
 import { InterestsSchema } from "../models/interests";
 import { OnboardingStatus, UserSchema } from "../models/user";
+import { handleErrorResponse } from "../middlewares/error-handler";
 const admin = require("firebase-admin");
 
 //TODO: get user by user id stored in the secure store, improve this with user session data instead
@@ -17,14 +18,7 @@ async function getUserAsync(req: Request, res: Response) {
 
     res.status(200).json(user);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -70,14 +64,7 @@ async function deleteAccountAsync(req: Request, res: Response) {
       });
     }
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 

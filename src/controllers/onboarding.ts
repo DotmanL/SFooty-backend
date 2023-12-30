@@ -3,6 +3,7 @@ import { InterestsSchema } from "../models/interests";
 import { OnboardingStatus, UserSchema } from "../models/user";
 import { updateOnboardingStatusAsync } from "./user";
 import { BadRequestError } from "../errors/bad-request-error";
+import { handleErrorResponse } from "../middlewares/error-handler";
 
 async function createLeagueInterestsAsync(req: Request, res: Response) {
   try {
@@ -22,14 +23,7 @@ async function createLeagueInterestsAsync(req: Request, res: Response) {
 
     return res.status(201).json(updateduser);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -50,14 +44,7 @@ async function createClubInterestsAsync(req: Request, res: Response) {
     );
     return res.status(201).json(updateduser);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
@@ -79,14 +66,7 @@ async function updateUserOnboardingStatusAsync(req: Request, res: Response) {
 
     res.status(201).json(updatedUser);
   } catch (err: any) {
-    return res.status(err.statusCode || 500).json({
-      errors: [
-        {
-          msg: err.message || "Internal Server Error",
-          status: err.statusCode || 500
-        }
-      ]
-    });
+    handleErrorResponse(res, err);
   }
 }
 
