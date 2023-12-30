@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 // import jwt from 'jsonwebtoken';
-import { NotAuthorizedError } from '../errors/not-authorized-error';
+import { NotAuthorizedError } from "../errors/not-authorized-error";
 
 export const requireAuth = (
   req: Request,
@@ -10,6 +10,5 @@ export const requireAuth = (
   if (!req.currentUser) {
     throw new NotAuthorizedError();
   }
-
   next();
 };

@@ -5,23 +5,28 @@ import {
   updateUserOnboardingStatusAsync
 } from "../controllers/onboarding";
 import { validateRequest } from "../middlewares/validate-request";
+import { requireAuth } from "../middlewares/require-auth";
 
 const router = express.Router();
 
 router.post(
-  "/createLeagueInterests/:userId",
+  "/createLeagueInterests",
   validateRequest,
+  requireAuth,
   createLeagueInterestsAsync
 );
+
 router.post(
-  "/createClubInterests/:userId",
+  "/createClubInterests",
   validateRequest,
+  requireAuth,
   createClubInterestsAsync
 );
 
 router.put(
-  "/updateOnboardingStatus/:userId",
+  "/updateOnboardingStatus",
   validateRequest,
+  requireAuth,
   updateUserOnboardingStatusAsync
 );
 

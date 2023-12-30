@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from "express";
+import { UserSchema } from "../models/user";
+const admin = require("firebase-admin");
 
 interface UserPayload {
   id: string;
@@ -15,20 +16,28 @@ declare global {
   }
 }
 
-export const currentUser = (
+export const currentUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.session?.jwt) {
+  const idToken =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
+
+  if (!idToken) {
     return next();
   }
+
   try {
-    const payload = jwt.verify(
-      req.session.jwt,
-      process.env.jwt_key!
-    ) as UserPayload;
-    req.currentUser = payload;
-  } catch (err) {}
+    const payload = await admin.auth().verifyIdToken(idToken);
+    const firebaseUser = await admin.auth().getUser(payload.uid);
+    const localUser = await UserSchema.findOne({
+      email: firebaseUser.providerData[0].email
+    }).lean();
+
+    req.currentUser = { ...payload, id: localUser?._id.toString() };
+  } catch (err: any) {
+    console.error(err);
+  }
   next();
 };

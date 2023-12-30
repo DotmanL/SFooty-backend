@@ -1,11 +1,16 @@
 import express from "express";
 import { deleteAccountAsync, getUserAsync } from "../controllers/user";
+import { requireAuth } from "../middlewares/require-auth";
 import { validateRequest } from "../middlewares/validate-request";
-import { body } from "express-validator";
 
 const router = express.Router();
 
-router.get("/getUser/:id", validateRequest, getUserAsync);
-router.delete("/deleteAccount/:id", validateRequest, deleteAccountAsync);
+router.get("/getUser", validateRequest, requireAuth, getUserAsync);
+router.delete(
+  "/deleteAccount",
+  validateRequest,
+  requireAuth,
+  deleteAccountAsync
+);
 
 module.exports = router;

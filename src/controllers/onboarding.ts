@@ -6,16 +6,17 @@ import { BadRequestError } from "../errors/bad-request-error";
 
 async function createLeagueInterestsAsync(req: Request, res: Response) {
   try {
-    const { userId } = req.params;
     const { leagueIds } = req.body;
 
+    const currentUser = req.currentUser;
+
     await InterestsSchema.findOneAndUpdate(
-      { userId },
+      { userId: currentUser!.id },
       { $set: { leagueIds } },
       { new: true, upsert: true }
     );
     const updateduser = await updateOnboardingStatusAsync(
-      userId,
+      currentUser!.id,
       OnboardingStatus.RegisteredLeagues
     );
 
@@ -34,17 +35,17 @@ async function createLeagueInterestsAsync(req: Request, res: Response) {
 
 async function createClubInterestsAsync(req: Request, res: Response) {
   try {
-    const { userId } = req.params;
+    const currentUser = req.currentUser;
     const { clubIds } = req.body;
 
     await InterestsSchema.findOneAndUpdate(
-      { userId },
+      { userId: currentUser!.id },
       { $set: { clubIds } },
       { new: true, upsert: true }
     );
 
     const updateduser = await updateOnboardingStatusAsync(
-      userId,
+      currentUser!.id,
       OnboardingStatus.RegisteredClubs
     );
     return res.status(201).json(updateduser);
@@ -62,16 +63,16 @@ async function createClubInterestsAsync(req: Request, res: Response) {
 
 async function updateUserOnboardingStatusAsync(req: Request, res: Response) {
   try {
-    const { userId } = req.params;
+    const currentUser = req.currentUser;
     const { onboardingStatus } = req.body;
-    const user = await UserSchema.findById(userId);
+    const user = await UserSchema.findById(currentUser!.id);
 
     if (!user) {
-      throw new BadRequestError(`No user exists with id: ${userId}`);
+      throw new BadRequestError(`No user exists with id: ${currentUser!.id}`);
     }
 
     const updatedUser = await UserSchema.findOneAndUpdate(
-      { _id: userId },
+      { _id: currentUser!.id },
       { $set: { onboardingStatus: onboardingStatus } },
       { new: true }
     );

@@ -25,6 +25,7 @@ async function signUpAsync(req: Request, res: Response) {
       }
     );
 
+    req.headers.Authorization = `Bearer ${fireBaseResponse.data.idToken}`;
     const user = UserSchema.build({
       userName: userName.trim(),
       email,
@@ -32,10 +33,6 @@ async function signUpAsync(req: Request, res: Response) {
       onboardingStatus: OnboardingStatus.None
     });
     await user.save();
-
-    req.session = {
-      idToken: fireBaseResponse.data.idToken
-    };
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
@@ -92,9 +89,7 @@ async function signUpWithIdpAsync(req: Request, res: Response) {
       data
     );
 
-    req.session = {
-      idToken: fireBaseResponse.data.idToken
-    };
+    req.headers.Authorization = `Bearer ${fireBaseResponse.data.idToken}`;
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
@@ -138,6 +133,8 @@ async function loginAsync(req: Request, res: Response) {
         returnSecureToken: true
       }
     );
+
+    req.headers.Authorization = `Bearer ${fireBaseResponse.data.idToken}`;
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
@@ -184,9 +181,7 @@ async function loginWithIdpAsync(req: Request, res: Response) {
       data
     );
 
-    req.session = {
-      idToken: fireBaseResponse.data.idToken
-    };
+    req.headers.Authorization = `Bearer ${fireBaseResponse.data.idToken}`;
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
@@ -236,6 +231,8 @@ async function resetPasswordAsync(req: Request, res: Response) {
       }
     );
 
+    req.headers.Authorization = `Bearer ${fireBaseResponse.data.idToken}`;
+
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
     );
@@ -273,9 +270,8 @@ async function changePasswordAsync(req: Request, res: Response) {
       password: password,
       returnSecureToken: true
     });
-    req.session = {
-      idToken: fireBaseResponse.data.idToken
-    };
+
+    req.headers.Authorization = `Bearer ${fireBaseResponse.data.idToken}`;
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)

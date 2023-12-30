@@ -4,6 +4,7 @@ import cookiesession from "cookie-session";
 import { errorHandler } from "./middlewares/error-handler";
 // import { NotFoundError } from './errors/not-found-error';
 import cors from "cors";
+import { currentUser } from "./middlewares/current-user";
 
 const app = express();
 app.set("trust proxy", true);
@@ -17,6 +18,7 @@ app.use(
   })
 );
 
+app.use(currentUser);
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/onboarding", require("./routes/onboarding"));
 app.use("/api/interest", require("./routes/interest"));
