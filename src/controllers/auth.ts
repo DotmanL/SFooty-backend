@@ -2,7 +2,7 @@ import axios from "axios";
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
 import { OnboardingStatus, UserSchema } from "../models/user";
-import { IFireBaseResponse } from "interfaces/IFirebaseResponse";
+import { IFireBaseResponse } from "../interfaces/IFirebaseResponse";
 import { calculateExpirationTime } from "../utility/dateTime";
 import { handleErrorResponse } from "../middlewares/error-handler";
 const admin = require("firebase-admin");
