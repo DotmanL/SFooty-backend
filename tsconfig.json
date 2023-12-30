@@ -4,7 +4,7 @@
     "types": [
       "node"
     ],
-    "baseUrl": ".",
+    // "baseUrl": ".",
     "outDir": "./dist",
     "typeRoots": ["./node_modules/@types"],
     "noImplicitAny": false,
