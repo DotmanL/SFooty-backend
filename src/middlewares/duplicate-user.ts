@@ -24,7 +24,5 @@ export const checkDuplicateUser = async (
     next();
   } catch (error) {
     next(error);
-    // console.error(error);
   }
-  //   next();
 };
