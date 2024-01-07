@@ -5,6 +5,7 @@ import { OnboardingStatus, UserSchema } from "../models/user";
 import { IFireBaseResponse } from "../interfaces/IFirebaseResponse";
 import { calculateExpirationTime } from "../utility/dateTime";
 import { handleErrorResponse } from "../middlewares/error-handler";
+import { GraphQueries } from "../graphQueries/userQueries";
 const admin = require("firebase-admin");
 
 async function signUpAsync(req: Request, res: Response) {
@@ -29,7 +30,9 @@ async function signUpAsync(req: Request, res: Response) {
       password,
       onboardingStatus: OnboardingStatus.None
     });
+
     await user.save();
+    await GraphQueries.createUser({ id: user.id, userName: userName.trim() });
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
@@ -46,7 +49,7 @@ async function signUpAsync(req: Request, res: Response) {
   }
 }
 
-// for Apple, send rawNonce also
+//TODO: for Apple, send rawNonce also
 async function signUpWithIdpAsync(req: Request, res: Response) {
   try {
     const { userName, email, idToken, providerId } = req.body;
@@ -58,6 +61,7 @@ async function signUpWithIdpAsync(req: Request, res: Response) {
     });
 
     await user.save();
+    await GraphQueries.createUser({ id: user.id, userName: userName.trim() });
 
     const firebaseSignUpWithIdpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${process.env.firebase_apiKey}`;
 

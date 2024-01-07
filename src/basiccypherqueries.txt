@@ -1,0 +1,36 @@
+# Wait 60 seconds before connecting using these details, or login to https://console.neo4j.io to validate the Aura Instance is available
+NEO4J_URI=neo4j+s://68f795e8.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=pp6Y_zyZDkHwxRYZxjCjr8OvAsqfXRXc_RZe07lwJZ4
+AURA_INSTANCEID=68f795e8
+AURA_INSTANCENAME=Instance01
+
+
+
+// Basic Cypher Queries
+
+// Lists 25 Product nodes
+
+MATCH (n:Product)
+RETURN n
+LIMIT 25
+
+// This returns 'Product' nodes with a relationship of 'SUPPLIES' to a 'Supplier' node.
+// relationships and denoted in UPPPERCASE with and underscore between words
+
+MATCH (n:Product)<-[r:SUPPLIES]-(s:Supplier)
+RETURN n,r,s
+LIMIT 25
+
+// All products ordered by a customer and who supplies those
+
+MATCH path=(c:Customer)-[:PURCHASED]->()-[:ORDERS]->(:Product)<-[:SUPPLIES]-(:Supplier)
+WHERE c.companyName = 'Blauer See Delikatessen'
+RETURN path;
+
+
+// Find total quantity per customer in the "Produce" category
+MATCH (cust:Customer)-[:PURCHASED]->(:Order)-[o:ORDERS]->(p:Product),
+      (p)-[:PART_OF]->(c:Category {categoryName:'Produce'})
+RETURN cust.contactName as CustomerName,
+       sum(o.quantity) AS TotalProductsPurchased
