@@ -39,5 +39,5 @@ tokenSchema.statics.build = (token: IToken) => {
   return new TokenSchema(token);
 };
 
-const TokenSchema = model<TokenDoc, TokenModel>("Token", tokenSchema);
+const TokenSchema = model<TokenDoc, TokenModel>("Tokens", tokenSchema);
 export { TokenSchema };

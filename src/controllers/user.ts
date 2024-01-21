@@ -3,7 +3,7 @@ import { BadRequestError } from "../errors/bad-request-error";
 import { InterestsSchema } from "../models/interests";
 import { OnboardingStatus, UserSchema } from "../models/user";
 import { handleErrorResponse } from "../middlewares/error-handler";
-import { GraphQueries } from "../graphQueries/userQueries";
+import { UserGraphQueries } from "../graphQueries/userQueries";
 const admin = require("firebase-admin");
 
 //TODO: get user by user id stored in the secure store, improve this with user session data instead
@@ -44,7 +44,7 @@ async function deleteAccountAsync(req: Request, res: Response) {
     }
 
     await existingUser.deleteOne();
-    await GraphQueries.deleteUser(existingUser.id);
+    await UserGraphQueries.deleteUser(existingUser.id);
 
     try {
       const firebaseUsers = await admin

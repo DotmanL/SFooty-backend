@@ -58,5 +58,5 @@ userSchema.statics.build = (user: IUser) => {
   return new UserSchema(user);
 };
 
-const UserSchema = mongoose.model<UserDoc, UserModel>("User", userSchema);
+const UserSchema = mongoose.model<UserDoc, UserModel>("Users", userSchema);
 export { UserSchema };

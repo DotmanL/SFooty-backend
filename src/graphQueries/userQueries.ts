@@ -37,4 +37,4 @@ async function deleteUser(userId: string) {
   });
 }
 
-export const GraphQueries = { createUser, deleteUser };
+export const UserGraphQueries = { createUser, deleteUser };
