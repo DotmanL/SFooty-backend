@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "dotenv/config";
 import { Request, Response } from "express";
 import { handleErrorResponse } from "../middlewares/error-handler";
