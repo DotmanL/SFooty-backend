@@ -22,6 +22,7 @@ export interface UserDoc extends mongoose.Document {
   email: string;
   password?: string;
   onboardingStatus: number;
+  createdAt?: Date;
 }
 
 const userSchema = new mongoose.Schema(

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import "dotenv/config";
 import { Request, Response } from "express";
 import { handleErrorResponse } from "../middlewares/error-handler";
@@ -16,7 +15,7 @@ async function createAsync(req: Request, res: Response) {
 
     if (req.files) {
       req.body.imageUrls = await Promise.all(
-        Object.values(req?.files).map(async (fileObj) => {
+        Object.values(req.files).map(async (fileObj) => {
           try {
             const result = await cloudinary.uploader.upload(fileObj.path);
             req.body.imagesCloudinaryFileNames.push(result.original_filename);
@@ -37,10 +36,13 @@ async function createAsync(req: Request, res: Response) {
       userId: currentUser!.id
     });
 
-    await post.save();
+    const createdPost = await post.save();
     await PostGraphQueries.createPost({
       userId: currentUser!.id,
-      id: post.id
+      id: post.id,
+      createdAtTimeStamp: createdPost.createdAt?.getTime().toFixed(0),
+      text: text,
+      imageUrls: req.body.imageUrls
     });
     res.status(201).json(post);
   } catch (err: any) {
@@ -48,7 +50,32 @@ async function createAsync(req: Request, res: Response) {
   }
 }
 
-async function deletePostAsync(req: Request, res: Response) {
+async function listFollowingPostsAsync(req: Request, res: Response) {
+  try {
+    const currentUser = req.currentUser;
+    let { cursorId, take } = req.query;
+
+    if (!cursorId) {
+      cursorId = undefined;
+    }
+
+    const takeNumber = take ? parseInt(take as string, 10) : 10;
+
+    const posts = await PostGraphQueries.listFollowingPosts(
+      currentUser?.id!,
+      cursorId as string,
+      takeNumber
+    );
+
+    return res.status(200).json({
+      posts
+    });
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
+async function deleteAsync(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const existingPost = await PostsSchema.findById(id);
@@ -62,9 +89,9 @@ async function deletePostAsync(req: Request, res: Response) {
       existingPost.imagesCloudinaryFileNames.length > 0
     ) {
       await Promise.all(
-        existingPost.imagesCloudinaryFileNames.map(async (imp) => {
+        existingPost.imagesCloudinaryFileNames.map(async (icf) => {
           await cloudinary.api.delete_resources(
-            [`${process.env.CLOUD_FOLDER_NAME}/${imp}`],
+            [`${process.env.CLOUD_FOLDER_NAME}/${icf}`],
             { type: "upload" }
           );
         })
@@ -81,4 +108,40 @@ async function deletePostAsync(req: Request, res: Response) {
   }
 }
 
-export { createAsync, deletePostAsync };
+export async function deleteAllPostsAsync(userId: string) {
+  const existingPosts = await PostsSchema.find({ userId: userId });
+  try {
+    if (!existingPosts || existingPosts.length === 0) {
+      return true;
+    }
+
+    await Promise.all(
+      existingPosts.map(async (post) => {
+        if (
+          post.imagesCloudinaryFileNames &&
+          post.imagesCloudinaryFileNames.length > 0
+        ) {
+          await cloudinary.api.delete_resources(
+            post.imagesCloudinaryFileNames.map(
+              (icf) => `${process.env.CLOUD_FOLDER_NAME}/${icf}`
+            ),
+            { type: "upload" }
+          );
+        }
+      })
+    );
+
+    await PostsSchema.deleteMany({ userId: userId });
+    await Promise.all(
+      existingPosts.map(async (post) => {
+        await PostGraphQueries.deletePost(post.id);
+      })
+    );
+    return true;
+  } catch (error: any) {
+    console.error(error, "Something went wrong deleting post");
+    return false;
+  }
+}
+
+export { createAsync, listFollowingPostsAsync, deleteAsync };

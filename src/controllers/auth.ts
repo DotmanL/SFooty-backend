@@ -31,11 +31,13 @@ async function signUpAsync(req: Request, res: Response) {
       onboardingStatus: OnboardingStatus.None
     });
 
-    await user.save();
-    await UserGraphQueries.createUser({
+    const createduser = await user.save();
+    await UserGraphQueries.createUserAsync({
       id: user.id,
-      userName: userName.trim()
+      userName: userName.trim(),
+      createdAtTimeStamp: createduser.createdAt?.getTime().toFixed(0)
     });
+    await UserGraphQueries.followUserAsync(user.id, user.id);
 
     const expirationTime = calculateExpirationTime(
       parseInt(fireBaseResponse.data.expiresIn)
@@ -63,12 +65,14 @@ async function signUpWithIdpAsync(req: Request, res: Response) {
       onboardingStatus: OnboardingStatus.None
     });
 
-    await user.save();
-    await UserGraphQueries.createUser({
+    const createduser = await user.save();
+    await UserGraphQueries.createUserAsync({
       id: user.id,
-      userName: userName.trim()
+      userName: userName.trim(),
+      createdAtTimeStamp: createduser.createdAt?.getTime().toFixed(0)
     });
 
+    await UserGraphQueries.followUserAsync(user.id, user.id);
     const firebaseSignUpWithIdpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${process.env.firebase_apiKey}`;
 
     const data = {

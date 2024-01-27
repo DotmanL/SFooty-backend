@@ -2,7 +2,11 @@ import express from "express";
 import "dotenv/config";
 import { validateRequest } from "../middlewares/validate-request";
 import { requireAuth } from "../middlewares/require-auth";
-import { createAsync, deletePostAsync } from "../controllers/post";
+import {
+  createAsync,
+  deleteAsync,
+  listFollowingPostsAsync
+} from "../controllers/post";
 import { body } from "express-validator";
 import multer from "multer";
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
@@ -29,6 +33,12 @@ router.post(
   createAsync
 );
 
-router.delete("/deletePost/:id", validateRequest, requireAuth, deletePostAsync);
+router.get(
+  "/listFollowingPosts",
+  validateRequest,
+  requireAuth,
+  listFollowingPostsAsync
+);
+router.delete("/deletePost/:id", validateRequest, requireAuth, deleteAsync);
 
 module.exports = router;

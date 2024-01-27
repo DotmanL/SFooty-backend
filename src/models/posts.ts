@@ -12,6 +12,7 @@ interface PostDoc extends mongoose.Document {
   text?: string;
   imageUrls?: string[];
   imagesCloudinaryFileNames?: string[];
+  createdAt?: Date;
 }
 
 interface PostModel extends mongoose.Model<PostDoc> {

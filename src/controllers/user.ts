@@ -4,6 +4,7 @@ import { InterestsSchema } from "../models/interests";
 import { OnboardingStatus, UserSchema } from "../models/user";
 import { handleErrorResponse } from "../middlewares/error-handler";
 import { UserGraphQueries } from "../graphQueries/userQueries";
+import { deleteAllPostsAsync } from "./post";
 const admin = require("firebase-admin");
 
 //TODO: get user by user id stored in the secure store, improve this with user session data instead
@@ -23,6 +24,94 @@ async function getUserAsync(req: Request, res: Response) {
   }
 }
 
+async function followAsync(req: Request, res: Response) {
+  try {
+    const { userToFollowId } = req.params;
+    const currentUser = req.currentUser;
+    const isSuccessful = await UserGraphQueries.followUserAsync(
+      currentUser?.id!,
+      userToFollowId
+    );
+
+    if (isSuccessful) {
+      return res.status(200).json({
+        status: "success"
+      });
+    }
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
+async function unfollowAsync(req: Request, res: Response) {
+  try {
+    const { userToUnfollowId } = req.params;
+    const currentUser = req.currentUser;
+    const isSuccessful = await UserGraphQueries.unfollowUserAsync(
+      currentUser?.id!,
+      userToUnfollowId
+    );
+
+    if (isSuccessful) {
+      return res.status(200).json({
+        status: "success"
+      });
+    }
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
+async function listFollowersAsync(req: Request, res: Response) {
+  try {
+    const { userId } = req.params;
+    let { cursorId, take } = req.query;
+
+    if (!cursorId) {
+      cursorId = undefined;
+    }
+
+    const takeNumber = take ? parseInt(take as string, 10) : 10;
+
+    const followers = await UserGraphQueries.listFollowersAsync(
+      userId,
+      cursorId as string,
+      takeNumber
+    );
+
+    return res.status(200).json({
+      followers
+    });
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
+async function listFollowingAsync(req: Request, res: Response) {
+  try {
+    const { userId } = req.params;
+    let { cursorId, take } = req.query;
+
+    if (!cursorId) {
+      cursorId = undefined;
+    }
+
+    const takeNumber = take ? parseInt(take as string, 10) : 10;
+
+    const following = await UserGraphQueries.listFollowingAsync(
+      userId,
+      cursorId as string,
+      takeNumber
+    );
+
+    return res.status(200).json({
+      following
+    });
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
 //NOTE: we only delete account with password provider, any other provider we don't delete
 //but user can't login as we always check our database for the user.
 async function deleteAccountAsync(req: Request, res: Response) {
@@ -35,6 +124,7 @@ async function deleteAccountAsync(req: Request, res: Response) {
         `No user exists with this id:${currentUser?.id}`
       );
     }
+
     const userInterest = await InterestsSchema.findOne({
       userId: existingUser?.id
     });
@@ -43,8 +133,11 @@ async function deleteAccountAsync(req: Request, res: Response) {
       await userInterest.deleteOne();
     }
 
-    await existingUser.deleteOne();
-    await UserGraphQueries.deleteUser(existingUser.id);
+    const isSuccessful = await deleteAllPostsAsync(currentUser?.id!);
+    if (isSuccessful) {
+      await UserGraphQueries.deleteUserAsync(currentUser?.id!);
+      await existingUser.deleteOne();
+    }
 
     try {
       const firebaseUsers = await admin
@@ -94,4 +187,11 @@ export async function updateOnboardingStatusAsync(
   }
 }
 
-export { deleteAccountAsync, getUserAsync };
+export {
+  deleteAccountAsync,
+  getUserAsync,
+  followAsync,
+  unfollowAsync,
+  listFollowersAsync,
+  listFollowingAsync
+};
