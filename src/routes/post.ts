@@ -9,14 +9,27 @@ import {
 } from "../controllers/post";
 import { body } from "express-validator";
 import multer from "multer";
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../config/cloudinary");
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: process.env.CLOUD_FOLDER_NAME,
-    allowedFormats: ["jpg", "png"]
+  params: async (req, file) => {
+    let folder: string | undefined;
+    let resource_type: string | undefined;
+    if (file.mimetype.startsWith("image/")) {
+      folder = process.env.CLOUD_FOLDER_NAME;
+      resource_type = "image";
+    } else if (file.mimetype.startsWith("video/")) {
+      folder = process.env.CLOUD_FOLDER_NAME;
+      resource_type = "video";
+    } else {
+      throw new Error("Unsupported file type");
+    }
+    return {
+      folder: folder,
+      resource_type: resource_type
+    };
   }
 });
 
@@ -28,7 +41,7 @@ router.post(
   "/createPost",
   [body("text").isLength({ max: 240 })],
   validateRequest,
-  parser.array("images", 6),
+  parser.array("media", 6),
   requireAuth,
   createAsync
 );

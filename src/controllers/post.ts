@@ -10,6 +10,7 @@ async function createAsync(req: Request, res: Response) {
   try {
     const currentUser = req.currentUser;
     const { text } = req.body;
+    //TODO: rename imageUrls to mediaUrls
     req.body.imageUrls = [];
     req.body.imagesCloudinaryFileNames = [];
 
@@ -17,9 +18,12 @@ async function createAsync(req: Request, res: Response) {
       req.body.imageUrls = await Promise.all(
         Object.values(req.files).map(async (fileObj) => {
           try {
-            const result = await cloudinary.uploader.upload(fileObj.path);
+            const result = await cloudinary.uploader.upload(fileObj.path, {
+              resource_type: fileObj.mimetype.startsWith("video/")
+                ? "video"
+                : "image"
+            });
             req.body.imagesCloudinaryFileNames.push(result.original_filename);
-
             return result.secure_url;
           } catch (error) {
             console.error("Error uploading image to Cloudinary:", error);
@@ -41,6 +45,7 @@ async function createAsync(req: Request, res: Response) {
       userId: currentUser!.id,
       id: post.id,
       createdAtTimeStamp: createdPost.createdAt?.getTime().toFixed(0),
+      username: currentUser!.username,
       text: text,
       imageUrls: req.body.imageUrls
     });
@@ -55,7 +60,7 @@ async function listFollowingPostsAsync(req: Request, res: Response) {
     const currentUser = req.currentUser;
     let { cursorId, take } = req.query;
 
-    if (!cursorId) {
+    if (cursorId === " ") {
       cursorId = undefined;
     }
 
@@ -67,9 +72,7 @@ async function listFollowingPostsAsync(req: Request, res: Response) {
       takeNumber
     );
 
-    return res.status(200).json({
-      posts
-    });
+    return res.status(200).json(posts);
   } catch (err: any) {
     handleErrorResponse(res, err);
   }
@@ -77,8 +80,13 @@ async function listFollowingPostsAsync(req: Request, res: Response) {
 
 async function deleteAsync(req: Request, res: Response) {
   try {
+    const currentUser = req.currentUser;
+
     const { id } = req.params;
-    const existingPost = await PostsSchema.findById(id);
+    const existingPost = await PostsSchema.findOne({
+      _id: id,
+      userId: currentUser!.id
+    });
 
     if (!existingPost) {
       throw new BadRequestError(`No post exists with this id:${id}`);

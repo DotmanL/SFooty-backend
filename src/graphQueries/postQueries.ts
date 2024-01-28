@@ -5,6 +5,7 @@ interface ICreatePost extends IBase {
   text: string;
   userId: string;
   createdAtTimeStamp?: string;
+  username: string;
   imageUrls: string;
 }
 
@@ -13,13 +14,14 @@ export async function createPost(post: ICreatePost) {
   try {
     await session.run(
       `MATCH (u:User {id: $userId})
-    CREATE (p:Post {id: $id, createdAtTimeStamp: $createdAtTimeStamp, text: $text, imageUrls: $imageUrls})
+    CREATE (p:Post {id: $id, createdAtTimeStamp: $createdAtTimeStamp, text: $text, imageUrls: $imageUrls, username: $username})
     CREATE (u)-[:Posted]->(p)
     RETURN p, u;`,
       {
         id: post.id,
         userId: post.userId,
         text: post.text ?? "",
+        username: post.username,
         imageUrls: post.imageUrls ?? "",
         createdAtTimeStamp: post.createdAtTimeStamp
       }
@@ -43,14 +45,14 @@ async function listFollowingPosts(
   `;
 
     if (cursorId) {
-      query += ` WHERE followingPost.id > $cursorId`;
+      query += ` WHERE followingPost.id < $cursorId`;
     }
 
     query += `
     WITH COLLECT(DISTINCT followingPost) as followingPosts
     UNWIND followingPosts AS post
     RETURN post
-    ORDER BY post.createdAtTimeStamp ASC
+    ORDER BY post.createdAtTimeStamp DESC
     LIMIT ${takeNumber}
   `;
 

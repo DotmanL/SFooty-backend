@@ -5,6 +5,7 @@ const admin = require("firebase-admin");
 interface UserPayload {
   id: string;
   email: string;
+  username: string;
 }
 
 //adding an optioanl property of currentUser to Request with existing type definition
@@ -36,7 +37,11 @@ export const currentUser = async (
       email: firebaseUser.providerData[0].email
     }).lean();
 
-    req.currentUser = { ...payload, id: localUser?._id.toString() };
+    req.currentUser = {
+      ...payload,
+      username: localUser?.userName,
+      id: localUser?._id.toString()
+    };
   } catch (err: any) {
     console.error(err);
   }
