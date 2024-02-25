@@ -1,6 +1,7 @@
 import { createSession } from "..";
 import { BadRequestError } from "../errors/bad-request-error";
 import { IBase } from "../interfaces/IBase";
+import { FollowState } from "../models/user";
 
 interface ICreateUser extends IBase {
   userName: string;
@@ -86,6 +87,67 @@ async function unfollowUserAsync(
   }
 }
 
+async function getUserProfile(currentUserId: string, userId: string) {
+  const session = createSession();
+
+  const isMine = currentUserId === userId;
+  try {
+    let query = `
+    MATCH (u:User {id: $userId})
+    OPTIONAL MATCH (u)<-[:Follows]-(follower:User)
+    WITH u, COUNT(DISTINCT follower) AS followersCount
+    OPTIONAL MATCH (u)-[:Follows]->(following:User)
+    WITH u, followersCount, COUNT(DISTINCT following) AS followingCount
+    RETURN 
+      u,
+      followingCount,
+      followersCount,
+      EXISTS { MATCH (cu:User)-[:Follows]->(u) } AS isFollowing,
+      EXISTS { MATCH (u)-[:Follows]->(cu:User) } AS isFollower;
+    `;
+
+    const result = await session.run(query, {
+      currentUserId,
+      userId
+    });
+
+    return {
+      followingCount: result.records[0].get("followingCount").toNumber() - 1,
+      followersCount: result.records[0].get("followersCount").toNumber() - 1,
+      followState: result.records[0].get("isFollowing")
+        ? isMine
+          ? FollowState.None
+          : FollowState.Following
+        : result.records[0].get("isFollower")
+        ? FollowState.FollowBack
+        : isMine
+        ? FollowState.None
+        : FollowState.Follow
+    };
+  } finally {
+    session.close();
+  }
+}
+
+// async function checkUserRelationAsync(currentUserId: string, userId: string) {
+//   const session = createSession();
+//   try {
+//     let query = `
+//       MATCH (:User {id: $currentUserId})-[:Follows]->(u:User {id: $userId})
+//       RETURN COUNT(u) > 0 AS isFollowing
+//     `;
+
+//     const result = await session.run(query, {
+//       currentUserId,
+//       userId
+//     });
+
+//     return result.records[0].get("isFollowing");
+//   } finally {
+//     session.close();
+//   }
+// }
+
 async function listFollowersAsync(
   userId: string,
   cursorId: string | undefined,
@@ -93,20 +155,33 @@ async function listFollowersAsync(
 ) {
   const session = createSession();
   try {
-    let query = `MATCH (u:User {id: $userId})<-[r:Follows]-(follower:User)`;
+    let query = `
+      MATCH (u:User {id: $userId})<-[r:Follows]-(follower:User)
+      WITH follower, [(follower)<-[:Follows]-(:User {id: $userId}) | 1] AS rels
+      RETURN follower, size(rels) > 0 AS isFollowBack
+    `;
 
     if (cursorId) {
       query += ` WHERE follower.id > $cursorId`;
     }
 
-    query += ` RETURN follower ORDER BY r.timestamp DESC LIMIT  ${takeNumber}`;
+    query += ` ORDER BY follower.timestamp DESC LIMIT ${takeNumber}`;
 
     const result = await session.run(query, {
       userId,
       cursorId
     });
 
-    return result.records.map((record) => record.get("follower").properties);
+    return result.records
+      .map((record) => {
+        const follower = record.get("follower").properties;
+        const isFollowBack = record.get("isFollowBack");
+        return {
+          ...follower,
+          followState: isFollowBack ? FollowState.None : FollowState.FollowBack
+        };
+      })
+      .filter((r) => r.id !== userId);
   } finally {
     session.close();
   }
@@ -165,5 +240,6 @@ export const UserGraphQueries = {
   unfollowUserAsync,
   listFollowersAsync,
   listFollowingAsync,
+  getUserProfile,
   deleteUserAsync
 };

@@ -24,6 +24,45 @@ async function getUserAsync(req: Request, res: Response) {
   }
 }
 
+//TODO: remove this method once search is implemented
+async function listAllUsersAsync(req: Request, res: Response) {
+  try {
+    const users = await UserSchema.find();
+
+    if (!users) {
+      throw new Error("No users found.");
+    }
+
+    res.status(200).json(users);
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
+async function getUserProfileAsync(req: Request, res: Response) {
+  try {
+    const currentUser = req.currentUser;
+    const { userId } = req.params;
+
+    let user = await UserSchema.findById(currentUser!.id);
+
+    if (!user) {
+      throw new BadRequestError(`No user exists with id: ${currentUser!.id}`);
+    }
+
+    const profile = await UserGraphQueries.getUserProfile(
+      currentUser?.id!,
+      userId
+    );
+
+    const userData = { ...user.toObject(), ...profile };
+
+    res.status(200).json({ user: userData });
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
 async function followAsync(req: Request, res: Response) {
   try {
     const { userToFollowId } = req.params;
@@ -190,8 +229,10 @@ export async function updateOnboardingStatusAsync(
 export {
   deleteAccountAsync,
   getUserAsync,
+  getUserProfileAsync,
   followAsync,
   unfollowAsync,
+  listAllUsersAsync,
   listFollowersAsync,
   listFollowingAsync
 };

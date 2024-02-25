@@ -21,7 +21,8 @@ async function createAsync(req: Request, res: Response) {
             const result = await cloudinary.uploader.upload(fileObj.path, {
               resource_type: fileObj.mimetype.startsWith("video/")
                 ? "video"
-                : "image"
+                : "image",
+              quality: "auto"
             });
             req.body.imagesCloudinaryFileNames.push(result.original_filename);
             return result.secure_url;

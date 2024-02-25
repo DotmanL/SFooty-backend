@@ -6,11 +6,22 @@ export enum OnboardingStatus {
   RegisteredLeagues,
   RegisteredClubs
 }
+
+export enum FollowState {
+  None,
+  Follow,
+  FollowBack,
+  Following
+}
+
 export interface IUser {
   userName: string;
   email: string;
   password?: string;
   onboardingStatus: OnboardingStatus;
+  followingCount?: number;
+  followersCount?: number;
+  followState?: FollowState;
 }
 
 export interface UserModel extends mongoose.Model<UserDoc> {
@@ -23,6 +34,9 @@ export interface UserDoc extends mongoose.Document {
   password?: string;
   onboardingStatus: number;
   createdAt?: Date;
+  followingCount?: number;
+  followersCount?: number;
+  followState?: FollowState;
 }
 
 const userSchema = new mongoose.Schema(

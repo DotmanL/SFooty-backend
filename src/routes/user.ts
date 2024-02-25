@@ -3,6 +3,8 @@ import {
   deleteAccountAsync,
   followAsync,
   getUserAsync,
+  getUserProfileAsync,
+  listAllUsersAsync,
   listFollowersAsync,
   listFollowingAsync,
   unfollowAsync
@@ -24,7 +26,14 @@ router.post(
   requireAuth,
   unfollowAsync
 );
+router.get("/listAllUsers", validateRequest, requireAuth, listAllUsersAsync);
 router.get("/getUser", validateRequest, requireAuth, getUserAsync);
+router.get(
+  "/getUserProfile/:userId",
+  validateRequest,
+  requireAuth,
+  getUserProfileAsync
+);
 router.get(
   "/listFollowers/:userId",
   validateRequest,
