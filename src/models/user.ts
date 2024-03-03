@@ -19,6 +19,7 @@ export interface IUser {
   email: string;
   password?: string;
   onboardingStatus: OnboardingStatus;
+  postsCount?: number;
   followingCount?: number;
   followersCount?: number;
   followState?: FollowState;
@@ -34,9 +35,10 @@ export interface UserDoc extends mongoose.Document {
   password?: string;
   onboardingStatus: number;
   createdAt?: Date;
-  followingCount?: number;
-  followersCount?: number;
-  followState?: FollowState;
+  // postsCount: number;
+  // followingCount?: number;
+  // followersCount?: number;
+  // followState?: FollowState;
 }
 
 const userSchema = new mongoose.Schema(

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
 import { InterestsSchema } from "../models/interests";
-import { OnboardingStatus, UserSchema } from "../models/user";
+import { IUser, OnboardingStatus, UserSchema } from "../models/user";
 import { handleErrorResponse } from "../middlewares/error-handler";
 import { UserGraphQueries } from "../graphQueries/userQueries";
 import { deleteAllPostsAsync } from "./post";
+import { PostsSchema } from "../models/posts";
 const admin = require("firebase-admin");
 
 //TODO: get user by user id stored in the secure store, improve this with user session data instead
@@ -44,20 +45,26 @@ async function getUserProfileAsync(req: Request, res: Response) {
     const currentUser = req.currentUser;
     const { userId } = req.params;
 
-    let user = await UserSchema.findById(currentUser!.id);
+    let user = await UserSchema.findById(userId);
+
+    const allPosts = await PostsSchema.find({ userId: userId });
 
     if (!user) {
-      throw new BadRequestError(`No user exists with id: ${currentUser!.id}`);
+      throw new BadRequestError(`No user exists with id: ${userId}`);
     }
 
     const profile = await UserGraphQueries.getUserProfile(
-      currentUser?.id!,
+      currentUser!.id,
       userId
     );
 
-    const userData = { ...user.toObject(), ...profile };
+    const userData: IUser = {
+      ...user.toObject(),
+      ...profile,
+      postsCount: allPosts.length
+    };
 
-    res.status(200).json({ user: userData });
+    res.status(200).json(userData);
   } catch (err: any) {
     handleErrorResponse(res, err);
   }
