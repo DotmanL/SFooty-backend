@@ -4,6 +4,9 @@ import { handleErrorResponse } from "../middlewares/error-handler";
 import { PostsSchema } from "../models/posts";
 import { PostGraphQueries } from "../graphQueries/postQueries";
 import { BadRequestError } from "../errors/bad-request-error";
+import mongoose from "mongoose";
+import { IFeedPost } from "../interfaces/IFeedPost";
+import { UserSchema } from "../models/user";
 const cloudinary = require("../config/cloudinary");
 
 async function createAsync(req: Request, res: Response) {
@@ -56,6 +59,116 @@ async function createAsync(req: Request, res: Response) {
   }
 }
 
+async function listAllPostsAsync(req: Request, res: Response) {
+  try {
+    const { userId } = req.params;
+    let { cursorId, take } = req.query;
+    const takeNumber = take ? parseInt(take as string, 10) : 10;
+    const cursorIdProvided =
+      cursorId !== " "
+        ? new mongoose.Types.ObjectId(cursorId as string)
+        : undefined;
+
+    let query = { userId: userId };
+
+    if (cursorId !== " ") {
+      //@ts-ignore
+      query._id = { $lt: cursorIdProvided };
+    }
+
+    const allPosts = await PostsSchema.find(query)
+      .populate({
+        path: "userId",
+        select: "userName",
+        model: UserSchema
+      })
+      .limit(takeNumber)
+      .sort({ createdAt: -1 });
+
+    //@ts-ignore
+    const allFeedPosts: IFeedPost[] = allPosts.map((allPost) => {
+      const {
+        createdAt,
+        _id,
+        userId,
+        imageUrls,
+        imagesCloudinaryFileNames,
+        text
+      } = allPost;
+
+      //@ts-ignore
+      const { _id: userIdString, userName } = userId;
+      return {
+        id: _id.toString(),
+        userId: userIdString.toString(),
+        username: userName,
+        imageUrls,
+        imagesCloudinaryFileNames,
+        text,
+        createdAtTimeStamp: createdAt!.getTime().toFixed(0)
+      };
+    });
+
+    return res.status(200).json(allFeedPosts);
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
+async function listAllMediaPostsAsync(req: Request, res: Response) {
+  try {
+    const { userId } = req.params;
+    let { cursorId, take } = req.query;
+    const takeNumber = take ? parseInt(take as string, 10) : 10;
+    const cursorIdProvided =
+      cursorId !== " "
+        ? new mongoose.Types.ObjectId(cursorId as string)
+        : undefined;
+
+    let query = { userId: userId, imageUrls: { $ne: [] } };
+    if (cursorId !== " ") {
+      //@ts-ignore
+      query._id = { $lt: cursorIdProvided };
+    }
+    const allPosts = await PostsSchema.find(query)
+      .populate({
+        path: "userId",
+        select: "userName",
+        model: UserSchema
+      })
+      .limit(takeNumber)
+      .sort({ createdAt: -1 });
+
+    //@ts-ignore
+    const allFeedPosts: IFeedPost[] = allPosts.map((allPost) => {
+      const {
+        createdAt,
+        _id,
+        userId,
+        imageUrls,
+        imagesCloudinaryFileNames,
+        text
+      } = allPost;
+
+      //@ts-ignore
+      const { _id: userIdString, userName } = userId;
+      return {
+        id: _id.toString(),
+        userId: userIdString.toString(),
+        username: userName,
+        imageUrls,
+        imagesCloudinaryFileNames,
+        text,
+        createdAtTimeStamp: createdAt!.getTime().toFixed(0)
+      };
+    });
+
+    return res.status(200).json(allFeedPosts);
+  } catch (err: any) {
+    handleErrorResponse(res, err);
+  }
+}
+
 async function listFollowingPostsAsync(req: Request, res: Response) {
   try {
     const currentUser = req.currentUser;
@@ -67,7 +180,7 @@ async function listFollowingPostsAsync(req: Request, res: Response) {
 
     const takeNumber = take ? parseInt(take as string, 10) : 10;
 
-    const posts = await PostGraphQueries.listFollowingPosts(
+    const posts: IFeedPost[] = await PostGraphQueries.listFollowingPosts(
       currentUser?.id!,
       cursorId as string,
       takeNumber
@@ -153,4 +266,10 @@ export async function deleteAllPostsAsync(userId: string) {
   }
 }
 
-export { createAsync, listFollowingPostsAsync, deleteAsync };
+export {
+  createAsync,
+  listFollowingPostsAsync,
+  deleteAsync,
+  listAllPostsAsync,
+  listAllMediaPostsAsync
+};

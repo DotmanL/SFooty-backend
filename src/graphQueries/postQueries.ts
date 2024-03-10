@@ -14,7 +14,7 @@ export async function createPost(post: ICreatePost) {
   try {
     await session.run(
       `MATCH (u:User {id: $userId})
-    CREATE (p:Post {id: $id, createdAtTimeStamp: $createdAtTimeStamp, text: $text, imageUrls: $imageUrls, username: $username})
+    CREATE (p:Post {id: $id, createdAtTimeStamp: $createdAtTimeStamp, text: $text, imageUrls: $imageUrls, username: $username, userId: $userId})
     CREATE (u)-[:Posted]->(p)
     RETURN p, u;`,
       {

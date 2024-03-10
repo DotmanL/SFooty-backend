@@ -5,6 +5,8 @@ import { requireAuth } from "../middlewares/require-auth";
 import {
   createAsync,
   deleteAsync,
+  listAllMediaPostsAsync,
+  listAllPostsAsync,
   listFollowingPostsAsync
 } from "../controllers/post";
 import { body } from "express-validator";
@@ -51,6 +53,19 @@ router.get(
   validateRequest,
   requireAuth,
   listFollowingPostsAsync
+);
+
+router.get(
+  "/listAllPosts/:userId",
+  validateRequest,
+  requireAuth,
+  listAllPostsAsync
+);
+router.get(
+  "/listAllMediaPosts/:userId",
+  validateRequest,
+  requireAuth,
+  listAllMediaPostsAsync
 );
 router.delete("/deletePost/:id", validateRequest, requireAuth, deleteAsync);
 
