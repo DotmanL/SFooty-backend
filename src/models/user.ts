@@ -23,6 +23,7 @@ export interface IUser {
   followingCount?: number;
   followersCount?: number;
   followState?: FollowState;
+  isFollower?: boolean;
 }
 
 export interface UserModel extends mongoose.Model<UserDoc> {

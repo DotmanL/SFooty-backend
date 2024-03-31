@@ -130,7 +130,8 @@ async function getUserProfile(currentUserId: string, userId: string) {
     return {
       followingCount: result.records[0].get("followingCount").toNumber() - 1,
       followersCount: result.records[0].get("followersCount").toNumber() - 1,
-      followState: followState
+      followState: followState,
+      isFollower: isFollower
     };
   } finally {
     session.close();
@@ -165,28 +166,34 @@ async function listFollowersAsync(
   try {
     let query = `
       MATCH (u:User {id: $userId})<-[r:Follows]-(follower:User)
-      WITH follower, [(follower)<-[:Follows]-(:User {id: $userId}) | 1] AS rels
-      RETURN follower, size(rels) > 0 AS isFollowBack
     `;
 
     if (cursorId) {
-      query += ` WHERE follower.id > $cursorId`;
+      query += ` WHERE r.timestamp < $cursorTimestamp`;
     }
 
-    query += ` ORDER BY follower.timestamp DESC LIMIT ${takeNumber}`;
+    query += `
+      WITH follower, r.timestamp AS followTimestamp
+      ORDER BY followTimestamp DESC
+      SKIP ${cursorId ? 1 : 0}
+      LIMIT ${takeNumber}
+      RETURN follower, [(follower)<-[:Follows]-(:User {id: $userId}) | 1] AS rels
+    `;
 
     const result = await session.run(query, {
       userId,
-      cursorId
+      cursorTimestamp: cursorId ? parseInt(cursorId) : null
     });
 
     return result.records
       .map((record) => {
         const follower = record.get("follower").properties;
-        const isFollowBack = record.get("isFollowBack");
+        const isFollowingBack = record.get("rels").length > 0;
         return {
           ...follower,
-          followState: isFollowBack ? FollowState.None : FollowState.FollowBack
+          followState: isFollowingBack
+            ? FollowState.Following
+            : FollowState.FollowBack
         };
       })
       .filter((r) => r.id !== userId);
@@ -205,17 +212,31 @@ async function listFollowingAsync(
     let query = `MATCH (u:User {id: $userId})-[r:Follows]->(following:User)`;
 
     if (cursorId) {
-      query += ` WHERE following.id > $cursorId`;
+      query += ` WHERE r.timestamp < $cursorTimestamp`;
     }
 
-    query += ` RETURN following ORDER BY r.timestamp DESC LIMIT  ${takeNumber}`;
+    query += `
+    WITH following, r.timestamp AS followTimestamp
+    ORDER BY followTimestamp DESC
+    SKIP ${cursorId ? 1 : 0}
+    LIMIT ${takeNumber}
+    RETURN following
+    `;
 
     const result = await session.run(query, {
       userId,
-      cursorId
+      cursorTimestamp: cursorId ? parseInt(cursorId) : null
     });
 
-    return result.records.map((record) => record.get("following").properties);
+    return result.records
+      .map((record) => {
+        const followingUser = record.get("following").properties;
+        return {
+          ...followingUser,
+          followState: FollowState.Following
+        };
+      })
+      .filter((r) => r.id !== userId);
   } finally {
     session.close();
   }

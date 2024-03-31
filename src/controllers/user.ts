@@ -113,10 +113,9 @@ async function listFollowersAsync(req: Request, res: Response) {
     const { userId } = req.params;
     let { cursorId, take } = req.query;
 
-    if (!cursorId) {
+    if (cursorId === " ") {
       cursorId = undefined;
     }
-
     const takeNumber = take ? parseInt(take as string, 10) : 10;
 
     const followers = await UserGraphQueries.listFollowersAsync(
@@ -125,9 +124,12 @@ async function listFollowersAsync(req: Request, res: Response) {
       takeNumber
     );
 
-    return res.status(200).json({
-      followers
-    });
+    const allFollowers: IUser[] = followers.map((user) => ({
+      ...user,
+      userName: user.username
+    }));
+
+    return res.status(200).json(allFollowers);
   } catch (err: any) {
     handleErrorResponse(res, err);
   }
@@ -138,7 +140,7 @@ async function listFollowingAsync(req: Request, res: Response) {
     const { userId } = req.params;
     let { cursorId, take } = req.query;
 
-    if (!cursorId) {
+    if (cursorId === " ") {
       cursorId = undefined;
     }
 
@@ -150,9 +152,12 @@ async function listFollowingAsync(req: Request, res: Response) {
       takeNumber
     );
 
-    return res.status(200).json({
-      following
-    });
+    const followingUsers: IUser[] = following.map((user) => ({
+      ...user,
+      userName: user.username
+    }));
+
+    return res.status(200).json(followingUsers);
   } catch (err: any) {
     handleErrorResponse(res, err);
   }
