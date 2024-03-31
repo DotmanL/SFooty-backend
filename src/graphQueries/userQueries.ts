@@ -102,27 +102,35 @@ async function getUserProfile(currentUserId: string, userId: string) {
       u,
       followingCount,
       followersCount,
-      EXISTS { MATCH (cu:User)-[:Follows]->(u) } AS isFollowing,
-      EXISTS { MATCH (u)-[:Follows]->(cu:User) } AS isFollower;
-    `;
+      CASE WHEN $currentUserId <> $userId THEN EXISTS { MATCH (cu:User {id: $currentUserId})-[:Follows]->(u) } ELSE false END AS isFollowing,
+      CASE WHEN $currentUserId <> $userId THEN EXISTS { MATCH (u)-[:Follows]->(cu:User {id: $currentUserId}) } ELSE false END AS isFollower;
+      `;
 
     const result = await session.run(query, {
       currentUserId,
       userId
     });
 
+    const isFollowing = result.records[0].get("isFollowing");
+    const isFollower = result.records[0].get("isFollower");
+
+    let followState: FollowState;
+
+    if (isFollowing) {
+      if (isMine) {
+        followState = FollowState.None;
+      } else {
+        followState = FollowState.Following;
+      }
+    } else if (isFollower) {
+      followState = FollowState.FollowBack;
+    } else {
+      followState = isMine ? FollowState.None : FollowState.Follow;
+    }
     return {
       followingCount: result.records[0].get("followingCount").toNumber() - 1,
       followersCount: result.records[0].get("followersCount").toNumber() - 1,
-      followState: result.records[0].get("isFollowing")
-        ? isMine
-          ? FollowState.None
-          : FollowState.Following
-        : result.records[0].get("isFollower")
-        ? FollowState.FollowBack
-        : isMine
-        ? FollowState.None
-        : FollowState.Follow
+      followState: followState
     };
   } finally {
     session.close();
