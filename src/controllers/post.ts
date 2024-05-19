@@ -241,6 +241,7 @@ async function deleteAsync(req: Request, res: Response) {
 
     await existingPost.deleteOne();
     await PostGraphQueries.deletePost(id);
+    await CommentsSchema.deleteMany({ postId: id });
     res.status(200).json({
       status: "success"
     });
