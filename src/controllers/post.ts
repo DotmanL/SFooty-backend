@@ -273,6 +273,7 @@ export async function deleteAllPostsAsync(userId: string) {
     );
 
     await PostsSchema.deleteMany({ userId: userId });
+    await CommentsSchema.deleteMany({ userId: userId });
     await Promise.all(
       existingPosts.map(async (post) => {
         await PostGraphQueries.deletePost(post.id);
