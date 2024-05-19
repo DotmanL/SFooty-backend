@@ -28,6 +28,7 @@ app.use("/api/league", require("./routes/league"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/token", require("./routes/token"));
 app.use("/api/post", require("./routes/post"));
+app.use("/api/comment", require("./routes/comment"));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello Big Man, lol");

@@ -5,6 +5,10 @@ export interface IPost {
   text?: string;
   imageUrls?: string[];
   imagesCloudinaryFileNames?: string[];
+  commentsCount?: number;
+  whistleCount?: number;
+  likeCount?: number;
+  bookmarked?: boolean;
 }
 
 interface PostDoc extends mongoose.Document {
@@ -13,6 +17,10 @@ interface PostDoc extends mongoose.Document {
   imageUrls?: string[];
   imagesCloudinaryFileNames?: string[];
   createdAt?: Date;
+  commentsCount?: number;
+  whistleCount?: number;
+  likeCount?: number;
+  bookmarked?: boolean;
 }
 
 interface PostModel extends mongoose.Model<PostDoc> {

@@ -7,8 +7,11 @@ import { BadRequestError } from "../errors/bad-request-error";
 import mongoose from "mongoose";
 import { IFeedPost } from "../interfaces/IFeedPost";
 import { UserSchema } from "../models/user";
+import { CommentsSchema } from "../models/comments";
+import { ObjectId } from "mongodb";
 const cloudinary = require("../config/cloudinary");
 
+//TODO: abstract these methods here into  base methods
 async function createAsync(req: Request, res: Response) {
   try {
     const currentUser = req.currentUser;
@@ -159,7 +162,7 @@ async function listAllMediaPostsAsync(req: Request, res: Response) {
         imageUrls,
         imagesCloudinaryFileNames,
         text,
-        createdAtTimeStamp: createdAt!.getTime().toFixed(0)
+        createdAt: createdAt!.getTime().toFixed(0)
       };
     });
 
@@ -186,7 +189,23 @@ async function listFollowingPostsAsync(req: Request, res: Response) {
       takeNumber
     );
 
-    return res.status(200).json(posts);
+    const postIds = posts.map((post) => new ObjectId(post.id));
+
+    const commentCounts = await CommentsSchema.aggregate([
+      { $match: { postId: { $in: postIds } } },
+      { $group: { _id: "$postId", count: { $sum: 1 } } }
+    ]);
+
+    const commentCountMap = new Map(
+      commentCounts.map((count) => [count._id.toString(), count.count])
+    );
+
+    const postsWithCommentCount = posts.map((post) => ({
+      ...post,
+      commentsCount: commentCountMap.get(post.id!.toString()) || 0
+    }));
+
+    return res.status(200).json(postsWithCommentCount);
   } catch (err: any) {
     handleErrorResponse(res, err);
   }
