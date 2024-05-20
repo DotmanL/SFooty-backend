@@ -35,7 +35,7 @@ const storage = new CloudinaryStorage({
   }
 });
 
-const parser = multer({ storage: storage });
+const parser = multer({ storage: storage, limits: { fileSize: 150 * 1024 * 1024 }});
 
 const router = express.Router();
 
